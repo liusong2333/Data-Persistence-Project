@@ -11,9 +11,13 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text BestScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
+    private string playerName;
+    private int bestScore;
+    private string winnerName;
     private int m_Points;
     
     private bool m_GameOver = false;
@@ -33,9 +37,16 @@ public class MainManager : MonoBehaviour
                 Vector3 position = new Vector3(-1.5f + step * x, 2.5f + i * 0.3f, 0);
                 var brick = Instantiate(BrickPrefab, position, Quaternion.identity);
                 brick.PointValue = pointCountArray[i];
-                brick.onDestroyed.AddListener(AddPoint);
+                if(DataPersistenceBetweenScenes.instance != null)
+                {
+                    brick.onDestroyed.AddListener(AddPoint);
+                }
+                
             }
         }
+
+        BestScore();
+
     }
 
     private void Update()
@@ -65,12 +76,36 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"Player : {DataPersistenceBetweenScenes.instance.winnerName} Score : {m_Points}";
     }
 
     public void GameOver()
     {
+        if(DataPersistenceBetweenScenes.instance != null)
+        {
+            if(m_Points > DataPersistenceBetweenScenes.instance.bestScore)
+            {
+                bestScore = m_Points;
+                DataPersistenceBetweenScenes.instance.bestScore = bestScore;
+                playerName = DataPersistenceBetweenScenes.instance.playerName;
+                DataPersistenceBetweenScenes.instance.winnerName = playerName;
+            }
+        }
+        DataPersistenceBetweenScenes.instance.SaveScore();
         m_GameOver = true;
         GameOverText.SetActive(true);
     }
+
+    void BestScore()
+    {
+        if(DataPersistenceBetweenScenes.instance.winnerName == "")
+        {
+            BestScoreText.text = "Best Score : Name : 0";
+        }
+        else
+        {
+            BestScoreText.text = $"Best Score : {DataPersistenceBetweenScenes.instance.winnerName} : {DataPersistenceBetweenScenes.instance.bestScore}";
+        }
+    }
+        
 }
